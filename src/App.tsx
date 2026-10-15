@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import PeerLab from './PeerLab';
 import RoomLab from './RoomLab';
+import ReadinessLab from './ReadinessLab';
+import { initialPage } from './entry';
+import type { Page } from './entry';
 import { approveNext, makeSession, releaseScreen, requestControl, takeScreen } from './session';
 import type { Session } from './session';
 
-type View = 'room' | 'lab' | 'rooms';
 type Layout = 'single' | 'split';
 
 function Glyph({ name }: { name: string }) {
@@ -15,7 +17,7 @@ function Glyph({ name }: { name: string }) {
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('room');
+  const [view, setView] = useState<Page>(() => initialPage(window.location.search));
   const [layout, setLayout] = useState<Layout>('single');
   const [session, setSession] = useState<Session>(() => makeSession());
   const current = session.participants.find((person) => person.id === session.presenting);
@@ -29,13 +31,14 @@ export default function App() {
           <button className={view === 'room' ? 'nav-active' : ''} onClick={() => setView('room')}>Control room</button>
           <button className={view === 'lab' ? 'nav-active' : ''} onClick={() => setView('lab')}>WebRTC lab</button>
           <button className={view === 'rooms' ? 'nav-active' : ''} onClick={() => setView('rooms')}>LAN rooms</button>
+          <button className={view === 'check' ? 'nav-active' : ''} onClick={() => setView('check')}>Device check</button>
         </nav>
         <a className="repo-link" href="https://github.com/MichaelWave369/PhiPortal" target="_blank" rel="noreferrer">GitHub <Glyph name="arrow" /></a>
       </header>
       <main>
         <section className="hero">
           <div className="hero-copy">
-            <p className="eyebrow"><span className="glow-dot" /> OPEN SOURCE · LOCAL FIRST · V0.1 PROTOTYPE</p>
+            <p className="eyebrow"><span className="glow-dot" /> OPEN SOURCE · LOCAL FIRST · V0.3 TEST CANDIDATE</p>
             <h1>One screen.<br /><span>Everybody connects.</span></h1>
             <p className="lede">A new idea for shared displays: walk up, join a session, and pass the screen around. No cable ceremony required.</p>
             <div className="hero-actions">
@@ -53,7 +56,7 @@ export default function App() {
           <span><b>WEBRTC LAB</b> real browser-to-browser stream</span>
           <span><b>LAN ROOMS</b> local relay required</span>
         </div>
-        {view === 'lab' ? <PeerLab /> : view === 'rooms' ? <RoomLab /> : (
+        {view === 'lab' ? <PeerLab /> : view === 'rooms' ? <RoomLab /> : view === 'check' ? <ReadinessLab /> : (
           <section className="room-grid">
             <div className="panel screen-panel">
               <div className="panel-heading"><div><p className="eyebrow">VIRTUAL DISPLAY 01</p><h2>Living Room</h2></div><span className="pill amber">Interactive simulation</span></div>

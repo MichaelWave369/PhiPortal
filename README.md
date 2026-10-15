@@ -56,3 +56,9 @@ Do **not** use v0.2 on an untrusted network, or share sensitive content. Plain H
 Run `npm run dev` for the Vite static interface. `npm run relay` serves the built site and WebSocket signaling. Read [architecture](docs/ARCHITECTURE.md), [privacy and safety](docs/SAFETY.md), [roadmap](docs/ROADMAP.md), and the [manual LAN validation guide](tests/room-protocol-guide.md).
 
 License: MIT, © 2026 MichaelWave369 and contributors.
+
+## First Light testing
+
+Open **Device check** to inspect WebRTC/screen-capture browser prerequisites and voluntarily probe relay reachability; all media remains unverified until an actual stream is observed. A privacy-safe receipt excludes host details, room codes, identities and SDP. Valid QR `?join=CODE` links open **LAN rooms** automatically.
+
+Follow [the two-computer Windows walkthrough](docs/FIRST_LIGHT.md) for a real LAN smoke test. GitHub Actions cannot stand in for a physical screen-sharing test.
