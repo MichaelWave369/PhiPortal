@@ -1,29 +1,29 @@
-# Roadmap and evidence gates
+# Evidence-based roadmap
 
-## V0.1: Receiver-first proof of concept
-- [x] Vite + React responsive control-room UI.
-- [x] Pure, unit-testable local state transitions for simulated host handoff.
-- [x] Explicitly labeled no-backend simulation and action history.
-- [x] Browser WebRTC offer/answer screen streaming experiment with manual signaling.
-- [x] CI workflow and GitHub Pages build/deploy job.
-- [ ] Confirm CI green on GitHub.
-- [ ] Verify two separate computers can complete a LAN WebRTC stream and document environment.
-- [ ] Verify GitHub Pages site deployed and accessible.
+## V0.1 (merged)
+- [x] React/Vite responsive control room (local simulation).
+- [x] Browser WebRTC manual offer/answer lab, no automatic pairing.
+- [x] Test and build workflow in GitHub Actions.
+- [ ] Two-device streaming verified on named machines and network.
+- [ ] GitHub Pages deployment externally verified.
 
-## V0.2: Consented real sessions
-- [ ] Secure short-lived pairing and room identity.
-- [ ] Signaling for multiple devices (local relay/node or carefully bounded service).
-- [ ] Host approval and presenter queue wired to real sessions, not simulated state.
-- [ ] Tests for replay, unauthorized join, expiration, disconnect and revocation.
+## V0.2 (PR #2 candidate)
+- [x] Ephemeral, in-memory Node/WebSocket room relay and approval protocol.
+- [x] Receiver room UI with short-lived code and QR join link.
+- [x] Presenter join, approval-gated automatic offer/answer WebRTC signaling.
+- [x] Host revoke, peer cleanup, room closure and protocol tests.
+- [ ] CI and TypeScript build pass for PR #2.
+- [ ] Physical two-device streaming test; record OS/browser/network.
+- [ ] Trusted HTTPS/WSS and origin/permission testing.
+- [ ] Abuse resistance, threat model and security review.
 
-## V0.3: Appliance
-- [ ] HDMI display receiver and autostart kiosk on a supported small device.
-- [ ] Local-network discovery and QR entry.
-- [ ] Display layout commands and clearly capability-gated HDMI-CEC adapter.
-- [ ] Document codec, memory, CPU, Wi-Fi and power test results.
+## V0.3 proposal
+- Single installer or native service with secure local endpoint / paired TLS.
+- Wi-Fi discovery and robust expiring sessions.
+- HDMI kiosk on Pi hardware; interoperability and performance tests.
+- Optional CEC command adapter with capabilities and user confirmation.
 
-## Research lanes (not release commitments)
-- Platform-specific native casting, protected content restrictions, Bluetooth discovery, game-console input/capture, lower-latency gaming, and multi-view compositor.
-- Optional PhiStream and NBGPocketMesh integrations only after independent interface and interoperability testing.
+## Separate research
+Platform-native AirPlay, Miracast, Google Cast and console support are distinct compatibility lanes, not v0.2 features. PhiStream and NBGPocketMesh remain integration candidates, not implemented dependencies.
 
-Evidence states: concept → prototype → tested on named devices → release candidate. Never collapse these into a single green badge.
+Milestone states: concept -> source exists -> CI verified -> real devices tested -> secure enough for intended use -> release.
