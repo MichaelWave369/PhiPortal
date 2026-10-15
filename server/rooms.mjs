@@ -83,6 +83,14 @@ export function createRoomRegistry({ now = () => Date.now(), codeFactory = makeC
     const entry = findRoomFor(socket);
     if (!entry) return fail(socket, 'Join or create a room first.');
     const { room, ref } = entry;
+    if (type === 'request') {
+      if (ref.role !== 'guest') return fail(socket, 'Only a guest can request presenter access.');
+      const guest = room.guests.get(ref.guestId);
+      if (!guest || guest.approved) return fail(socket, 'Already approved or no guest record.');
+      emit(room.host, { type: 'join-request', guestId: ref.guestId, name: guest.name });
+      emit(socket, { type: 'joined-pending', code: room.code, guestId: ref.guestId });
+      return;
+    }
     if (type === 'approve' || type === 'reject') {
       if (ref.role !== 'host') return fail(socket, 'Only the receiver can approve guests.');
       const guest = room.guests.get(event.guestId);

@@ -1,26 +1,26 @@
 # PhiPortal architecture
 
-## Layers
+## Current execution paths
 
-1. **Sender**: browser screen capture using getDisplayMedia with a browser-owned permission prompt. Future sender adapters may use platform-native mirroring.
-2. **Transport**: v0.1 uses RTCPeerConnection with manual JSON SDP exchange. ICE has no configured STUN/TURN servers; no server component exists.
-3. **Receiver**: browser video element renders the incoming MediaStream.
-4. **Control plane**: the current React room is a local simulation, deliberately NOT connected to the peer data plane. A future real control plane needs identity, scoped permissions, membership, handoff grants, expiration, and audit events.
-5. **Hardware adapter**: future optional Pi or equivalent device provides HDMI output. HDMI-CEC needs explicit capability probing and opt-in commands; not every display supports every command.
+**Demo:** React control-room queue and handoff state runs in one browser, not on a network.
 
-## Interfaces proposed for later design
+**Manual media lab:** Two browsers copy WebRTC offer/answer JSON between each other. No discovery or server.
 
-- Presence: local discovery with user-visible identity; no silent automatic joins.
-- Pairing: short-lived codes or QR, cryptographically bound to a single room.
-- Authority: host approval before a new peer may put media on the receiver; guest permission never means remote control of a guest's device.
-- Session ledger: event sequence, timestamps, role/actor, command, outcome, scoped authority, and retention limits; avoid collecting media or sensitive SDP.
-- Stream selection: exactly one active presenter for MVP, then opt-in multi-view, with explicit session lifecycle.
-- Compatibility: feature matrix records **verified** devices, tested OS/browser, timing and limitations. Experimental adapters are not marked working without independent test.
+**LAN room experiment (PR #2):** Receiver creates a room using an ephemeral Node/WebSocket relay. Guests join by a QR/link or manually entered code. Join is pending until the receiver approves a specific server-generated guest ID. Only the active approved guest can relay an SDP offer and only the receiver can answer it. Screen capture always requires a separate explicit user gesture and browser permission. SDP is relayed automatically, then video travels over WebRTC. No user media is stored by the relay.
 
-## Planned integration candidates
+## Trust boundaries
 
-PhiStream, NBGPocketMesh, LightBridge and PocketBrain Tiny are *possible future interfaces*, not bundled dependencies or working integrations. Prefer separate adapters with minimal permissions and independent tests.
+- Receiver authority is bound to the **creating WebSocket connection**, not to guest-supplied IDs, UI labels, or room codes.
+- Guest access is permission to *request*; approval is explicit; browser display-capture permission remains independent.
+- Room code is generated with secure random bytes, lasts 15 minutes for new joins, and is not long-term identity. Client identity is not verified.
+- Multiple connections can request entry, but the relay forwards offers only for the currently approved presenter.
+- Host revocation immediately disables future signaling. Client-side peer cleanup is best effort; not a substitute for hardened remote media authorization.
+- Origin checks and limited attempt counts are defense in depth, not a complete LAN threat model.
+- Default transport is insecure HTTP/WS. Intended only for trusted experimental local networks; production requires HTTPS/WSS, better authorization, rate limits and abuse prevention.
+- LAN discovery, NAT traversal, certificate provisioning, device compatibility and reconnect behavior remain future engineering work.
 
-## Not a universal KVM
+## Appliance direction
 
-PhiPortal does not promise to act as a universal graphics input, defeat DRM, intercept devices, or grant remote keyboard/mouse control. The first real goal is explicit opt-in screen video sharing and host-authorized selection.
+A later HDMI appliance would run this receiver/control-plane logic on a Pi-class node, expose a clear display room UI, and provide QR entry. It should maintain scope-limited commands, host control, capability-based HDMI-CEC, privacy-preserving event receipts, and deterministic test gates.
+
+PhiStream, NBGPocketMesh, LightBridge and PocketBrain Tiny are **integration ideas**, not current implementation dependencies.

@@ -97,7 +97,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (raw, isBinary) => {
     if (isBinary) { ws.close(1003, 'Text messages only'); return; }
     try { registry.handle(ws, JSON.parse(raw.toString())); }
-    catch { if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON.' })); }
+    catch { if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'error', message: 'Invalid JSON.' })); }
   });
   ws.on('close', () => registry.disconnect(ws));
   ws.isAlive = () => alive;

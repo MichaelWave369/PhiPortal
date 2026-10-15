@@ -2,52 +2,57 @@
 
 **One screen. Everybody connects.**
 
-Experimental, open-source, local-first collaborative display software. PhiPortal aims to turn a spare monitor, television, or small HDMI-connected computer into a shared display, with explicit participant consent and host-controlled handoffs.
+A local-first experiment in sharing a TV or monitor among devices. The target is a small receiver appliance with explicit host control, not a KVM or a DRM workaround.
 
-## Current truth (v0.1 prototype)
+## What exists
 
-| Feature | Status |
+| Piece | Current state |
 | --- | --- |
-| Responsive React control room | Implemented, interactive **simulation** |
-| Queue, host approval, simulated display layout, event feed | Implemented **locally in one browser only** |
-| Browser capture and peer-to-peer WebRTC screen streaming | Experimental, **manual SDP handshake** |
-| Real cross-device discovery, join codes, authorization | Not implemented |
-| Native AirPlay, Miracast, Google Cast and console compatibility | Not implemented |
-| PhiPie / HDMI hardware and CEC commands | Not implemented |
-| Production privacy/security assessment | Not completed |
+| React control room | Interactive *simulation* (PR #1) |
+| Manual WebRTC lab | Experimental real browser media exchange (PR #1) |
+| Local room relay + short code + QR join | PR #2 experimental implementation; requires local Node process |
+| Receiver approval and revoke | PR #2 relay-enforced signaling permissions |
+| Automatic WebRTC offer/answer exchange | PR #2 LAN relay path; two-device validation pending |
+| Cross-device discovery / HDMI hardware / native casting | Not implemented |
 
-No live-streaming or device compatibility claim should be inferred from a passing UI build.
+## Install and run
 
-## Run locally
+Requires Node.js 22+.
 
-Requires Node.js 22+ and npm.
+```bash
+npm install
+npm test
+npm run build
+npm run relay
+```
 
-1. Clone this repository and change into its directory.
-2. Run `npm install`.
-3. Run `npm run dev`.
-4. Open the local address Vite prints (normally `http://localhost:5173/PhiPortal/`).
+The last command starts an **in-memory, local signaling server** and static site at port 8787, listening on the local network by default. Restrict it with `PHIPORTAL_BIND=127.0.0.1` when you only need loopback. The local relay is for a trusted development LAN, not public hosting.
 
-Checks: `npm test`, `npm run typecheck`, `npm run build`.
+In the **receiver** browser, visit `http://<relay-machine-LAN-IP>:8787/PhiPortal/`, open **LAN rooms**, and select **Create room**. Display the QR code. On a presenting device, visit the join link, request access and wait for the receiver to approve. The presenter then clicks **Start screen sharing** and grants the browser's own picker permission.
 
-The production build uses the `/PhiPortal/` base path for GitHub Pages. GitHub Pages must be configured to deploy from **GitHub Actions** in repository settings.
+**Important browser constraint:** `getDisplayMedia` only works in a *secure context* (HTTPS or localhost). A second laptop visiting `http://192.168.x.x:8787` cannot normally share its screen. A practical first test is: receiver on an HTTP LAN address and presenter on **the relay host machine at** `http://localhost:8787/PhiPortal/`; join by typing the room code. To support a different presenting laptop, set up trusted TLS (below) or run a development UI on that laptop's localhost with a reachable relay configured. Some browser private-network rules can further restrict cross-origin use.
 
-## Real streaming experiment (no signaling service)
+The automatically generated QR link only works if the receiver itself opened the relay via an address other devices can reach. A QR to `localhost` will not reach other machines.
 
-1. Open the app on two browsers, generally on the same reachable local network. HTTPS (or localhost on the capturing machine) is necessary for screen capture.
-2. On the sender, choose **WebRTC lab → I am presenting → Start sharing**. Choose what to share in the browser permission prompt.
-3. Privately transfer the generated **offer JSON** to the receiving browser.
-4. On the receiver, choose **I am receiving**, paste the offer, and select **Generate answer**.
-5. Privately transfer the resulting **answer JSON** back to the sender and select **Apply answer**.
-6. Stop and disconnect on either side when finished.
+### TLS and development configuration
 
-The video travels peer-to-peer with WebRTC encryption when a connection is established. Signaling still requires manual transfer outside the app. The experiment uses **host ICE candidates only** with no STUN or TURN server, so peer connections can fail due to browser candidate policy, mDNS support, firewalls, guest Wi-Fi isolation, or different networks. Manual exchange is deliberate; QR pairing and consented session signaling come later. Do not share SDP publicly: it can contain network/session details.
+Supply **both** `PHIPORTAL_TLS_CERT` and `PHIPORTAL_TLS_KEY` as absolute paths to a certificate and key trusted by each participating browser. This enables HTTPS for the local relay and WSS for signaling. The relay **does not generate or install certificates**, and a self-signed certificate requires appropriate trust setup on every client. Keep HTTPS and WSS same-origin for normal use.
 
-Browser screen capture is not supported on every phone/browser and cannot bypass protected content. Consoles require their own legal and technically compatible input/capture route. There is no cross-device input control, browser permission bypass, automatic recording, cloud upload, user database, or protocol-level auth.
+The Vite UI can optionally use `VITE_SIGNAL_URL` to override the signaling endpoint (for example while developing a sender UI on its own localhost). Cross-origin relays must also explicitly allow the origin via the comma-separated `PHIPORTAL_ALLOWED_ORIGINS` setting. Defaults reject mismatched origins.
 
-## Intent
+```bash
+# Example only after configuring trusted certificate paths
+PHIPORTAL_TLS_CERT=/absolute/path/cert.pem PHIPORTAL_TLS_KEY=/absolute/path/key.pem npm run relay
+```
 
-The end-state is a tiny networked appliance connected to HDMI that can accept explicitly approved shares from multiple kinds of devices and run a programmable local display UI. The software is independently implemented; third-party interoperability requires protocol-specific research and testing.
+GitHub Pages is **only the static UI**: it cannot host this Node relay. Pages over HTTPS also cannot connect to an insecure `ws://` LAN relay due to browser mixed-content restrictions. A fully browser-based, no-install cross-device sender experience requires additional infrastructure and security work.
 
-Read [architecture](docs/ARCHITECTURE.md), [safety boundaries](docs/SAFETY.md), and [roadmap](docs/ROADMAP.md).
+## Scope and cautions
 
-MIT license. © 2026 MichaelWave369 and contributors.
+Rooms live only in RAM and disappear when the receiver disconnects or the relay restarts. Join codes are 10-character random values and expire for **new joins after 15 minutes**. Receivers explicitly approve guests; the relay won't forward a guest's offer until approval. Approval is **not** permission to capture the guest's screen: the browser still asks.
+
+Do **not** use v0.2 on an untrusted network, or share sensitive content. Plain HTTP/WS leaks signaling and room codes on the network, and the current system has no account identity, long-term authentication, IP hardening or production security review. The media path is direct WebRTC and may fail due to Wi-Fi isolation, mDNS/ICE limitations or missing STUN/TURN infrastructure. No native phone screen mirroring or console capture is implemented.
+
+Run `npm run dev` for the Vite static interface. `npm run relay` serves the built site and WebSocket signaling. Read [architecture](docs/ARCHITECTURE.md), [privacy and safety](docs/SAFETY.md), [roadmap](docs/ROADMAP.md), and the [manual LAN validation guide](tests/room-protocol-guide.md).
+
+License: MIT, © 2026 MichaelWave369 and contributors.

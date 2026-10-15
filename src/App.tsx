@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import PeerLab from './PeerLab';
+import RoomLab from './RoomLab';
 import { approveNext, makeSession, releaseScreen, requestControl, takeScreen } from './session';
 import type { Session } from './session';
 
-type View = 'room' | 'lab';
+type View = 'room' | 'lab' | 'rooms';
 type Layout = 'single' | 'split';
 
 function Glyph({ name }: { name: string }) {
@@ -27,6 +28,7 @@ export default function App() {
         <nav aria-label="Primary">
           <button className={view === 'room' ? 'nav-active' : ''} onClick={() => setView('room')}>Control room</button>
           <button className={view === 'lab' ? 'nav-active' : ''} onClick={() => setView('lab')}>WebRTC lab</button>
+          <button className={view === 'rooms' ? 'nav-active' : ''} onClick={() => setView('rooms')}>LAN rooms</button>
         </nav>
         <a className="repo-link" href="https://github.com/MichaelWave369/PhiPortal" target="_blank" rel="noreferrer">GitHub <Glyph name="arrow" /></a>
       </header>
@@ -37,7 +39,7 @@ export default function App() {
             <h1>One screen.<br /><span>Everybody connects.</span></h1>
             <p className="lede">A new idea for shared displays: walk up, join a session, and pass the screen around. No cable ceremony required.</p>
             <div className="hero-actions">
-              <button className="primary" onClick={() => setView('lab')}>Try real peer streaming <Glyph name="arrow" /></button>
+              <button className="primary" onClick={() => setView('rooms')}>Try LAN room pairing <Glyph name="arrow" /></button>
               <button className="secondary" onClick={() => setView('room')}>Explore control room</button>
             </div>
           </div>
@@ -49,9 +51,9 @@ export default function App() {
         <div className="info-strip">
           <span><b>CONTROL ROOM</b> simulated interaction</span>
           <span><b>WEBRTC LAB</b> real browser-to-browser stream</span>
-          <span><b>HARDWARE</b> planned, not implemented</span>
+          <span><b>LAN ROOMS</b> local relay required</span>
         </div>
-        {view === 'lab' ? <PeerLab /> : (
+        {view === 'lab' ? <PeerLab /> : view === 'rooms' ? <RoomLab /> : (
           <section className="room-grid">
             <div className="panel screen-panel">
               <div className="panel-heading"><div><p className="eyebrow">VIRTUAL DISPLAY 01</p><h2>Living Room</h2></div><span className="pill amber">Interactive simulation</span></div>
@@ -96,7 +98,7 @@ export default function App() {
             </div>
             <div className="panel roadmap-panel">
               <div className="panel-heading"><div><p className="eyebrow">OUR NEXT MILESTONES</p><h2>From mockup to node</h2></div><Glyph name="spark" /></div>
-              <div className="milestones"><div><b>01</b><span>Manual WebRTC peer stream</span><span className="tag">Experimental</span></div><div><b>02</b><span>Local discovery + consented sessions</span><span className="tag">Planned</span></div><div><b>03</b><span>Raspberry Pi HDMI receiver</span><span className="tag">Planned</span></div><div><b>04</b><span>Native casting / command adapters</span><span className="tag">Research</span></div></div>
+              <div className="milestones"><div><b>01</b><span>Manual WebRTC peer stream</span><span className="tag">Experimental</span></div><div><b>02</b><span>Consent-based room pairing via relay</span><span className="tag">Experimental</span></div><div><b>03</b><span>Raspberry Pi HDMI receiver</span><span className="tag">Planned</span></div><div><b>04</b><span>Native casting / command adapters</span><span className="tag">Research</span></div></div>
             </div>
           </section>
         )}
