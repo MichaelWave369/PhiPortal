@@ -148,8 +148,9 @@ export default function RoomLab() {
         setStatus('Approved! Click Start screen sharing and choose what to show.');
         break;
       case 'rejected':
-        setStatus('The receiver declined your request.');
+        setStatus('The receiver declined your request. Disconnect, then reconnect to request a fresh join.');
         setApproved(false);
+        setJoined(false);
         break;
       case 'revoked':
         setApproved(false);
@@ -342,7 +343,7 @@ export default function RoomLab() {
         <div className="panel">
           <div className="panel-heading"><div><p className="eyebrow">DISPLAY OUTPUT</p><h2>{mode === 'receiver' ? 'Incoming stream' : 'My capture preview'}</h2></div><span className="pill">{streaming ? 'Streaming' : 'Standby'}</span></div>
           <div className="video-stage">
-            <video autoPlay playsInline ref={receiverVideo} className={mode === 'receiver' ? '' : 'hidden'} />
+            <video autoPlay playsInline controls ref={receiverVideo} className={mode === 'receiver' ? '' : 'hidden'} />
             <video autoPlay playsInline muted ref={senderVideo} className={mode === 'presenter' ? '' : 'hidden'} />
             {!streaming && <p className="video-hint">Approved video will appear here once peers connect.</p>}
           </div>
